@@ -26,4 +26,4 @@ class LoginView(APIView):
         if not user:
             return Response({"detail": "No active account found with the given credentials"}, status.HTTP_401_UNAUTHORIZED)
 
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.data)
