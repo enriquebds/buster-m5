@@ -1,6 +1,6 @@
 from rest_framework.views import APIView, Request, Response, status
 from rest_framework.permissions import IsAuthenticated
-from .serializers import MovieSerializer
+from .serializers import MovieOrderSerializer, MovieSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from movies.permissions import IsEmployee
 from _core.pagination import CustomLimitOffsetPagination
@@ -34,7 +34,7 @@ class MovieDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsEmployee]
 
-    def get(self, request: Request, movie_id: int) -> Response:
+    def get(self, req: Request, movie_id: int) -> Response:
         movie = get_object_or_404(Movie, id=movie_id)
 
         serializer = MovieSerializer(movie)
@@ -42,10 +42,21 @@ class MovieDetailView(APIView):
         return Response(serializer.data, status.HTTP_200_OK)
         
 
-    def delete(self, request: Request, movie_id: int) -> Response:
+    def delete(self, req: Request, movie_id: int) -> Response:
 
         movie = get_object_or_404(Movie, id=movie_id)
         
         movie.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class MovieOrderDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, req, movie_id) -> Response:
+        movie = get_object_or_404(Movie, id=movie_id)
+        movie_order= MovieOrderSerializer(data=req.data)
+        movie_order.is_valid(raise_exception=True)
+        movie_order.save(user_order=req.user, movie_order=movie)
+        return Response(movie_order.data, status.HTTP_201_CREATED)
