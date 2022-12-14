@@ -25,7 +25,7 @@ class MovieView(APIView, CustomLimitOffsetPagination):
 
     def get(self, req: Request) -> Response:
         movies = Movie.objects.all()
-        pages = self.paginate_queryset(movies, req, view=self)
+        pages = self.paginate_queryset(movies, req)
         serializer = MovieSerializer(pages, many=True)
 
         return self.get_paginated_response(serializer.data)
@@ -54,9 +54,12 @@ class MovieOrderDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     
-    def post(self, req, movie_id) -> Response:
-        movie = get_object_or_404(Movie, id=movie_id)
-        movie_order= MovieOrderSerializer(data=req.data)
-        movie_order.is_valid(raise_exception=True)
-        movie_order.save(user_order=req.user, movie_order=movie)
-        return Response(movie_order.data, status.HTTP_201_CREATED)
+    def post(self, req: Request,  movie_id: int) -> Response:
+        serializer = MovieOrderSerializer(data=req.data)
+        movie_select = Movie.objects.get(id=movie_id)
+
+        serializer.is_valid(raise_exception=True)
+        
+        serializer.save(user=req.user, movie=movie_select)
+
+        return Response(serializer.data, status.HTTP_201_CREATED)
