@@ -22,7 +22,7 @@ class Movie(models.Model):
     )
 
     users_buyers = models.ManyToManyField(
-        User, through="MovieOrder", related_name="movies_bought")
+        User, related_name="movies_bought")
 
 
 
